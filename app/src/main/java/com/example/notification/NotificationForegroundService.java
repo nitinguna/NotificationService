@@ -16,13 +16,13 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
-public class ForegroundService extends NotificationListenerService {
+public class NotificationForegroundService extends NotificationListenerService {
 
     private static final String TAG = "ForeGroundService";
     private static final String CHANNEL_ID = "ForegroundServiceChannel";
 
 
-    public ForegroundService() {
+    public NotificationForegroundService() {
     }
 
     @Override

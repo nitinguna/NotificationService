@@ -1,11 +1,14 @@
 package com.example.notification;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +18,27 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import java.util.List;
+
 public class FirstFragment extends Fragment {
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
     private AlertDialog enableNotificationListenerAlertDialog;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Boolean isServiceRunning = isServiceRunning(
+                getContext(),
+                NotificationForegroundService.class);
+        if(!isServiceRunning){
+            if(isNotificationServiceEnabled()) {
+                startService();
+            }
+        }
+    }
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -41,15 +60,15 @@ public class FirstFragment extends Fragment {
                     enableNotificationListenerAlertDialog = buildNotificationServiceAlertDialog();
                     enableNotificationListenerAlertDialog.show();
                 }
-                if(isNotificationServiceEnabled()) {
-                    startService();
-                }
+                //if(isNotificationServiceEnabled()) {
+                  //  startService();
+                //}
             }
         });
     }
 
     public void startService() {
-        Intent serviceIntent = new Intent(getContext(), ForegroundService.class);
+        Intent serviceIntent = new Intent(getContext(), NotificationForegroundService.class);
         serviceIntent.putExtra("inputExtra", "Foreground Service Example in Android");
         getContext().startService(serviceIntent);
     }
@@ -96,5 +115,18 @@ public class FirstFragment extends Fragment {
                     }
                 });
         return(alertDialogBuilder.create());
+    }
+
+    private  boolean isServiceRunning(Context context, Class<?> serviceClass){
+        final ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+        final List<ActivityManager.RunningServiceInfo> services = activityManager.getRunningServices(Integer.MAX_VALUE);
+
+        for (ActivityManager.RunningServiceInfo runningServiceInfo : services) {
+            Log.d("ServiceUtils", String.format("Service:%s", runningServiceInfo.service.getClassName()));
+            if (runningServiceInfo.service.getClassName().equals(serviceClass.getName())){
+                return true;
+            }
+        }
+        return false;
     }
 }
