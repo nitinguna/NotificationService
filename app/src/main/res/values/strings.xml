@@ -15,4 +15,34 @@
     <string name="notification_listener_service_explanation">"For the the app. to work you need to enable the Notification Listener Service. Enable it now?"</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+
+    <string name="notification_controller_desc">"Notification Controller Enable Disable"</string>
+    <string name="notification_controller_title">"Notification Controller Enable Disable"</string>
+
+    <string name="notification_controller_rule_type_description">"Rule type WhiteList BlackList"</string>
+    <string name="notification_controller_rule_type_title">"Rule type WhiteList BlackList"</string>
+    <string name="notification_controller_rule_type_default_value">"0"</string>
+
+    <string name="notification_controller_whitelistrules_description">"Define your Whitelist Rules"</string>
+    <string name="notification_controller_whitelistrules_title">"Define your Whitelist Rules"</string>
+    <string name="notification_controller_whitelistrule_description">"add whitelist rule"</string>
+    <string name="notification_controller_whitelistrule_title">"add whitelist rule"</string>
+    <string name="notification_controller_notification_package_name_description">"Package name"</string>
+    <string name="notification_controller_notification_package_name__title">"Package name"</string>
+    <string name="notification_controller_notification_channelid_description">"Channel Id"</string>
+    <string name="notification_controller_notification_channelid_title">"Channel Id"</string>
+    <string name="notification_controller_notification_title_description">"Title"</string>
+    <string name="notification_controller_notification_title_title">"Title"</string>
+    <string name="notification_controller_notification_text_description">"Text"</string>
+    <string name="notification_controller_notification_text_title">"Text"</string>
+    <string name="notification_controller_notification_subtext_description">"Sub Text"</string>
+    <string name="notification_controller_notification_subtext_title">"Sub Text"</string>
+
+    <string name="notification_controller_blacklistrules_description">"Define your Blacklist Rules"</string>
+    <string name="notification_controller_blacklistrules_title">"Define your Blacklist Rules"</string>
+    <string name="notification_controller_blacklistrule_description">"add Blacklist rule"</string>
+    <string name="notification_controller_blacklistrule_title">"add Blacklist rule"</string>
+
+
+
 </resources>

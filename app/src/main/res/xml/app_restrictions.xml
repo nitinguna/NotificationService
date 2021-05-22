@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2014 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~  http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+-->
+<restrictions xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+    Refer to the javadoc of RestrictionsManager for detail of this file.
+    https://developer.android.com/reference/android/content/RestrictionsManager.html
+    -->
+
+    <restriction
+        android:description="@string/notification_controller_desc"
+        android:title="@string/notification_controller_title"
+        android:key="notificationIsControlled"
+        android:defaultValue="false"
+        android:restrictionType="bool" />
+
+    <restriction
+        android:description="@string/notification_controller_rule_type_description"
+        android:entries="@array/notification_controller_rule_type_entries"
+        android:title="@string/notification_controller_rule_type_title"
+        android:key="notificationRuleType"
+        android:defaultValue="@string/notification_controller_rule_type_default_value"
+        android:entryValues="@array/notification_controller_rule_type_entries"
+        android:restrictionType="choice" />
+
+    <restriction
+        android:description="@string/notification_controller_whitelistrules_description"
+        android:key="notification_controller_whitelistrules"
+        android:restrictionType="bundle_array"
+        android:title="@string/notification_controller_whitelistrules_title">
+    <restriction
+        android:description="@string/notification_controller_whitelistrule_description"
+        android:title="@string/notification_controller_whitelistrule_title"
+        android:key="notification_controller_whitelistrule"
+        android:restrictionType="bundle" >
+        <restriction
+            android:description="@string/notification_controller_notification_package_name_description"
+            android:title="@string/notification_controller_notification_package_name__title"
+            android:key="wl_packagename"
+            android:restrictionType="string" />
+        <restriction
+            android:description="@string/notification_controller_notification_channelid_description"
+            android:title="@string/notification_controller_notification_channelid_title"
+            android:key="wl_channelid"
+            android:restrictionType="string" />
+        <restriction
+            android:description="@string/notification_controller_notification_title_description"
+            android:title="@string/notification_controller_notification_title_title"
+            android:key="wl_title"
+            android:restrictionType="string" />
+        <restriction
+            android:description="@string/notification_controller_notification_text_description"
+            android:title="@string/notification_controller_notification_text_title"
+            android:key="wl_text"
+            android:restrictionType="string" />
+        <restriction
+            android:description="@string/notification_controller_notification_subtext_description"
+            android:title="@string/notification_controller_notification_subtext_title"
+            android:key="wl_subtext"
+            android:restrictionType="string" />
+    </restriction>
+    </restriction>
+
+    <restriction
+        android:description="@string/notification_controller_blacklistrules_description"
+        android:key="notification_controller_blacklistrules"
+        android:restrictionType="bundle_array"
+        android:title="@string/notification_controller_blacklistrules_title">
+        <restriction
+            android:description="@string/notification_controller_blacklistrule_description"
+            android:title="@string/notification_controller_blacklistrule_title"
+            android:key="notification_controller_blacklistrule"
+            android:restrictionType="bundle" >
+            <restriction
+                android:description="@string/notification_controller_notification_package_name_description"
+                android:title="@string/notification_controller_notification_package_name__title"
+                android:key="bl_packagename"
+                android:restrictionType="string" />
+            <restriction
+                android:description="@string/notification_controller_notification_channelid_description"
+                android:title="@string/notification_controller_notification_channelid_title"
+                android:key="bl_channelid"
+                android:restrictionType="string" />
+            <restriction
+                android:description="@string/notification_controller_notification_title_description"
+                android:title="@string/notification_controller_notification_title_title"
+                android:key="bl_title"
+                android:restrictionType="string" />
+            <restriction
+                android:description="@string/notification_controller_notification_text_description"
+                android:title="@string/notification_controller_notification_text_title"
+                android:key="bl_text"
+                android:restrictionType="string" />
+            <restriction
+                android:description="@string/notification_controller_notification_subtext_description"
+                android:title="@string/notification_controller_notification_subtext_title"
+                android:key="bl_subtext"
+                android:restrictionType="string" />
+        </restriction>
+    </restriction>
+
+</restrictions>
