@@ -5,7 +5,12 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.RestrictionEntry;
+import android.content.RestrictionsManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -16,10 +21,21 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.time.temporal.TemporalAccessor;
+import java.util.List;
+
+import static com.example.notification.BundleTools.createJsonStringFromBundle;
+import static com.example.notification.JsonUtiity.getJson;
+
 public class NotificationForegroundService extends NotificationListenerService {
 
     private static final String TAG = "ForeGroundService";
     private static final String CHANNEL_ID = "ForegroundServiceChannel";
+    // Observes restriction changes
+    private BroadcastReceiver mBroadcastReceiver;
 
 
     public NotificationForegroundService() {
@@ -39,6 +55,19 @@ public class NotificationForegroundService extends NotificationListenerService {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         // String input = intent.getStringExtra("inputExtra");
+        mBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                try {
+                    refreshRules();
+                } catch (BundleTools.BundleException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        registerReceiver(mBroadcastReceiver,
+                new IntentFilter(Intent.ACTION_APPLICATION_RESTRICTIONS_CHANGED));
+
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
@@ -51,6 +80,15 @@ public class NotificationForegroundService extends NotificationListenerService {
         startForeground(1, notification);
 
         return START_NOT_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mBroadcastReceiver != null) {
+            unregisterReceiver(mBroadcastReceiver);
+            mBroadcastReceiver = null;
+        }
     }
 
     private void createNotificationChannel() {
@@ -118,5 +156,22 @@ public class NotificationForegroundService extends NotificationListenerService {
         }
 
 
+    }
+
+    private void refreshRules() throws BundleTools.BundleException {
+        RestrictionsManager manager =
+                (RestrictionsManager) getSystemService(Context.RESTRICTIONS_SERVICE);
+        Bundle restrictions = manager.getApplicationRestrictions();
+        List<RestrictionEntry> entries = manager.getManifestRestrictions(
+                getApplicationContext().getPackageName());
+        //String jsonString = getJson(restrictions);
+        //Log.d(TAG, "jsonString: " + jsonString);
+        String jsonString = createJsonStringFromBundle(restrictions, true);
+        Log.d(TAG, "jsonString: " + jsonString);
+        for (RestrictionEntry entry : entries) {
+            String key = entry.getKey();
+            Log.d(TAG, "key: " + key);
+
+        }
     }
 }
