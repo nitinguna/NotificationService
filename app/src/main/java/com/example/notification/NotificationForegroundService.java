@@ -25,6 +25,7 @@ import com.example.notification.model.ManagedProperty;
 import com.example.notification.model.NotificationControllerBlacklistrule;
 import com.example.notification.model.NotificationControllerBlacklistrule__1;
 import com.example.notification.model.NotificationControllerWhitelistrule;
+import com.example.notification.model.NotificationControllerWhitelistrule__1;
 import com.example.notification.model.NotificationManagedConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -160,7 +161,7 @@ public class NotificationForegroundService extends NotificationListenerService {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void refreshActiveNotifications(){
+    private void refreshActiveNotifications() {
         StatusBarNotification[] activeNotifications = this.getActiveNotifications();
 
         if (activeNotifications != null && activeNotifications.length > 0) {
@@ -203,6 +204,8 @@ public class NotificationForegroundService extends NotificationListenerService {
                                             if (titleMaskDisable || blRule.getBlTitle().equalsIgnoreCase(title))
                                                 if (textMaskDisable || blRule.getBlText().equalsIgnoreCase(text))
                                                     if (subTextMaskDisable || blRule.getBlSubtext().equalsIgnoreCase(subText)) {
+                                                        Log.d(TAG, "Notification Blacklisted " + activeNotifications[i].getKey());
+                                                        Log.d(TAG, "Notification in blacklist Cancelling " + activeNotifications[i].getKey());
                                                         this.cancelNotification(activeNotifications[i].getKey());
                                                     }
 
@@ -211,7 +214,46 @@ public class NotificationForegroundService extends NotificationListenerService {
                         }
                     } else {
                         Log.e(TAG, "Enabling White List rule " + ruleType);
+                        if (null != whtListRules && !whtListRules.isEmpty()) {
+                            Iterator<NotificationControllerWhitelistrule> genericItr = whtListRules.iterator();
+                            Boolean inWList = false;
+                            while (genericItr.hasNext()) {
+                                inWList = false;
+                                NotificationControllerWhitelistrule whtRuless = genericItr.next();
+                                List<NotificationControllerWhitelistrule__1> whtrules = whtRuless.getNotificationControllerWhitelistrule();
+                                for (NotificationControllerWhitelistrule__1 whtRule : whtrules) {
+
+                                    Boolean packageMaskDisable = (whtRule.getWlPackagename() == null || whtRule.getWlPackagename().isEmpty());
+                                    Boolean channelMaskDisable = (whtRule.getWlChannelid() == null || whtRule.getWlChannelid().isEmpty());
+                                    Boolean titleMaskDisable = (whtRule.getWlTitle() == null || whtRule.getWlTitle().isEmpty());
+                                    Boolean textMaskDisable = (whtRule.getWlText() == null || whtRule.getWlText().isEmpty());
+                                    Boolean subTextMaskDisable = (whtRule.getWlSubtext() == null || whtRule.getWlSubtext().isEmpty());
+                                    if ((packageMaskDisable || whtRule.getWlPackagename().equalsIgnoreCase(packageName)) &&
+                                            (channelMaskDisable || whtRule.getWlChannelid().equalsIgnoreCase(chnID)) &&
+                                            (titleMaskDisable || whtRule.getWlTitle().equalsIgnoreCase(title)) &&
+                                            (textMaskDisable || whtRule.getWlText().equalsIgnoreCase(text)) &&
+                                            (subTextMaskDisable || whtRule.getWlSubtext().equalsIgnoreCase(subText))) {
+                                        Log.d(TAG, "Notification in Whitelist " + activeNotifications[i].getKey());
+                                        inWList = true;
+                                        break;
+                                    } else {
+                                        Log.d(TAG, "Notification NOT in Whitelist as per Rule " + activeNotifications[i].getKey());
+                                        //this.cancelNotification(sbn.getKey());
+                                        inWList = false;
+                                    }
+
+                                }
+                                if (inWList)
+                                    break;
+                            }
+                            if (!inWList) {
+                                Log.d(TAG, "Notification NOT in Whitelist Cancelling " + activeNotifications[i].getKey());
+                                this.cancelNotification(activeNotifications[i].getKey());
+                            }
+
+                        }
                     }
+
 
                 } else {
                     Log.e(TAG, "Feature disabled " + isControlled);
@@ -220,6 +262,8 @@ public class NotificationForegroundService extends NotificationListenerService {
             }
         }
     }
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -315,6 +359,7 @@ public class NotificationForegroundService extends NotificationListenerService {
                                     if (titleMaskDisable || blRule.getBlTitle().equalsIgnoreCase(title))
                                         if (textMaskDisable || blRule.getBlText().equalsIgnoreCase(text))
                                             if (subTextMaskDisable || blRule.getBlSubtext().equalsIgnoreCase(subText)) {
+                                                Log.d(TAG, "Notification in blacklist Cancelling " + sbn.getKey());
                                                 this.cancelNotification(sbn.getKey());
                                             }
 
@@ -323,6 +368,44 @@ public class NotificationForegroundService extends NotificationListenerService {
                 }
             } else {
                 Log.e(TAG, "Enabling White List rule " + ruleType);
+                if (null != whtListRules && !whtListRules.isEmpty()) {
+                    Iterator<NotificationControllerWhitelistrule> genericItr = whtListRules.iterator();
+                    Boolean inWList = false;
+                    while (genericItr.hasNext()) {
+                        inWList = false;
+                        NotificationControllerWhitelistrule whtRuless = genericItr.next();
+                        List<NotificationControllerWhitelistrule__1> whtrules = whtRuless.getNotificationControllerWhitelistrule();
+                        for (NotificationControllerWhitelistrule__1 whtRule : whtrules) {
+
+                            Boolean packageMaskDisable = (whtRule.getWlPackagename() == null || whtRule.getWlPackagename().isEmpty());
+                            Boolean channelMaskDisable = (whtRule.getWlChannelid() == null || whtRule.getWlChannelid().isEmpty());
+                            Boolean titleMaskDisable = (whtRule.getWlTitle() == null || whtRule.getWlTitle().isEmpty());
+                            Boolean textMaskDisable = (whtRule.getWlText() == null || whtRule.getWlText().isEmpty());
+                            Boolean subTextMaskDisable = (whtRule.getWlSubtext() == null || whtRule.getWlSubtext().isEmpty());
+                            if ((packageMaskDisable || whtRule.getWlPackagename().equalsIgnoreCase(packageName)) &&
+                                 (channelMaskDisable || whtRule.getWlChannelid().equalsIgnoreCase(chnID)) &&
+                                     (titleMaskDisable || whtRule.getWlTitle().equalsIgnoreCase(title)) &&
+                                         (textMaskDisable || whtRule.getWlText().equalsIgnoreCase(text)) &&
+                                             (subTextMaskDisable || whtRule.getWlSubtext().equalsIgnoreCase(subText))){
+                                                Log.d(TAG, "Notification in Whitelist " + sbn.getKey());
+                                                inWList=true;
+                                                break;
+                                            }else{
+                                                Log.d(TAG, "Notification NOT in Whitelist as per Rule " + sbn.getKey());
+                                                //this.cancelNotification(sbn.getKey());
+                                                inWList=false;
+                                            }
+
+                        }
+                        if(inWList)
+                            break;
+                    }
+                    if(!inWList){
+                        Log.d(TAG, "Notification NOT in Whitelist Cancelling " + sbn.getKey());
+                        this.cancelNotification(sbn.getKey());
+                    }
+
+                }
             }
 
         } else {

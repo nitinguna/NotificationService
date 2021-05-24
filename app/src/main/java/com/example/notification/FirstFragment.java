@@ -41,7 +41,7 @@ public class FirstFragment extends Fragment {
             Boolean isNotificationServiceEnabled =isNotificationServiceEnabled();
             Log.d(TAG, "On Resume isNotificationServiceEnabled  " +isNotificationServiceEnabled);
             if(isNotificationServiceEnabled) {
-
+                //getView().findViewById(R.id.button_first).
                 startService();
             }
         }
