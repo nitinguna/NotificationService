@@ -1,7 +1,7 @@
 
 package com.example.notification.model;
 
-import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "bl_packagename",
     "bl_subtext"
 })
-@Generated("jsonschema2pojo")
+
 public class NotificationControllerBlacklistrule__1 {
 
     @JsonProperty("bl_title")

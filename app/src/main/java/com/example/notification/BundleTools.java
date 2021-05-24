@@ -204,7 +204,8 @@ public abstract class BundleTools
                         bundleToJsonArray((Bundle)p,ja);
 
                         JSONObject jo = new JSONObject();
-                        if ( subKey == null ) subKey = key.substring(0,key.length()-1);
+                        //if ( subKey == null ) subKey = key.substring(0,key.length()-1);
+                        subKey = key.substring(0,key.length()-1);
                        // jo.put("key",subKey);
                         jo.put(subKey,ja);
 
