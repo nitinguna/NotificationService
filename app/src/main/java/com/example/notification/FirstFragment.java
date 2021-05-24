@@ -20,11 +20,15 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import java.util.List;
 
+import static com.example.notification.Utilities.isServiceRunning;
+
 public class FirstFragment extends Fragment {
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
     private AlertDialog enableNotificationListenerAlertDialog;
+
+    private static final String TAG = "ForeGroundService";
 
     @Override
     public void onResume() {
@@ -32,18 +36,39 @@ public class FirstFragment extends Fragment {
         Boolean isServiceRunning = isServiceRunning(
                 getContext(),
                 NotificationForegroundService.class);
-        if(!isServiceRunning){
-            if(isNotificationServiceEnabled()) {
+        Log.d(TAG, "On Resume isServiceRunning foreGround " +isServiceRunning);
+        if(isServiceRunning){
+            Boolean isNotificationServiceEnabled =isNotificationServiceEnabled();
+            if(isNotificationServiceEnabled) {
+                Log.d(TAG, "On Resume isNotificationServiceEnabled  " +isNotificationServiceEnabled);
                 startService();
             }
         }
     }
+
+
 
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
+        /*
+        Boolean isServiceRunning = isServiceRunning(
+                getContext(),
+                NotificationForegroundService.class);
+        Log.d(TAG, "On onCreateView isServiceRunning foreGround " +isServiceRunning);
+        if(isServiceRunning){
+            Log.d(TAG, "Killing Foreground service ");
+            Intent serviceIntent = new Intent(getContext(), NotificationForegroundService.class);
+            getContext().stopService(serviceIntent);
+        }
+        // check whether its really got killed
+        isServiceRunning = isServiceRunning(
+                getContext(),
+                NotificationForegroundService.class);
+        Log.d(TAG, "check On onCreateView isServiceRunning foreGround " +isServiceRunning);
+        */
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_first, container, false);
     }
@@ -60,6 +85,7 @@ public class FirstFragment extends Fragment {
                     enableNotificationListenerAlertDialog = buildNotificationServiceAlertDialog();
                     enableNotificationListenerAlertDialog.show();
                 }
+
                 //if(isNotificationServiceEnabled()) {
                   //  startService();
                 //}
@@ -117,16 +143,5 @@ public class FirstFragment extends Fragment {
         return(alertDialogBuilder.create());
     }
 
-    private  boolean isServiceRunning(Context context, Class<?> serviceClass){
-        final ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-        final List<ActivityManager.RunningServiceInfo> services = activityManager.getRunningServices(Integer.MAX_VALUE);
 
-        for (ActivityManager.RunningServiceInfo runningServiceInfo : services) {
-            Log.d("ServiceUtils", String.format("Service:%s", runningServiceInfo.service.getClassName()));
-            if (runningServiceInfo.service.getClassName().equals(serviceClass.getName())){
-                return true;
-            }
-        }
-        return false;
-    }
 }
