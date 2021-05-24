@@ -17,7 +17,7 @@ public class Utilities {
         for (ActivityManager.RunningServiceInfo runningServiceInfo : services) {
             Log.d("ServiceUtils", String.format("Service:%s", runningServiceInfo.service.getClassName()));
             if (runningServiceInfo.service.getClassName().equals(serviceClass.getName())){
-                return true;
+                return runningServiceInfo.foreground;
             }
         }
         return false;

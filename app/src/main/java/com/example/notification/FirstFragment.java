@@ -37,10 +37,11 @@ public class FirstFragment extends Fragment {
                 getContext(),
                 NotificationForegroundService.class);
         Log.d(TAG, "On Resume isServiceRunning foreGround " +isServiceRunning);
-        if(isServiceRunning){
+        if(!isServiceRunning){
             Boolean isNotificationServiceEnabled =isNotificationServiceEnabled();
+            Log.d(TAG, "On Resume isNotificationServiceEnabled  " +isNotificationServiceEnabled);
             if(isNotificationServiceEnabled) {
-                Log.d(TAG, "On Resume isNotificationServiceEnabled  " +isNotificationServiceEnabled);
+
                 startService();
             }
         }
