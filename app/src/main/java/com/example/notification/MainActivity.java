@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         Intent serviceIntent = new Intent(getApplicationContext(), NotificationForegroundService.class);
         getApplicationContext().stopService(serviceIntent);
     }

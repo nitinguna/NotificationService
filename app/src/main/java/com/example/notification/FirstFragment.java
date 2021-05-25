@@ -47,29 +47,11 @@ public class FirstFragment extends Fragment {
         }
     }
 
-
-
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        /*
-        Boolean isServiceRunning = isServiceRunning(
-                getContext(),
-                NotificationForegroundService.class);
-        Log.d(TAG, "On onCreateView isServiceRunning foreGround " +isServiceRunning);
-        if(isServiceRunning){
-            Log.d(TAG, "Killing Foreground service ");
-            Intent serviceIntent = new Intent(getContext(), NotificationForegroundService.class);
-            getContext().stopService(serviceIntent);
-        }
-        // check whether its really got killed
-        isServiceRunning = isServiceRunning(
-                getContext(),
-                NotificationForegroundService.class);
-        Log.d(TAG, "check On onCreateView isServiceRunning foreGround " +isServiceRunning);
-        */
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_first, container, false);
     }
@@ -81,15 +63,10 @@ public class FirstFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 // If the user did not turn the notification listener service on we prompt him to do so
-
                 if(!isNotificationServiceEnabled()){
                     enableNotificationListenerAlertDialog = buildNotificationServiceAlertDialog();
                     enableNotificationListenerAlertDialog.show();
                 }
-
-                //if(isNotificationServiceEnabled()) {
-                  //  startService();
-                //}
             }
         });
     }
@@ -143,6 +120,4 @@ public class FirstFragment extends Fragment {
                 });
         return(alertDialogBuilder.create());
     }
-
-
 }
