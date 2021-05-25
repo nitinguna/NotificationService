@@ -43,40 +43,18 @@ import static com.example.notification.Utilities.isServiceRunning;
 
 public class NotificationForegroundService extends NotificationListenerService {
 
+    public static final String ACTION_APPLICATION_RESTRICTIONS_CHANGED_FROM_VENDING = "android.intent.action.ACTION_APPLICATION_RESTRICTIONS_CHANGED_FROM_VENDING";
     private static final String TAG = "ForeGroundService";
     private static final String CHANNEL_ID = "ForegroundServiceChannel";
-    public static final String ACTION_APPLICATION_RESTRICTIONS_CHANGED_FROM_VENDING = "android.intent.action.ACTION_APPLICATION_RESTRICTIONS_CHANGED_FROM_VENDING";
-
-    // Observes restriction changes
-    private BroadcastReceiver mBroadcastReceiver;
     NotificationManagedConfig managedConfig;
     Boolean isControlled = false;
     String ruleType;
     List<NotificationControllerBlacklistrule> blkListRules = null;
     List<NotificationControllerWhitelistrule> whtListRules = null;
-
+    // Observes restriction changes
+    private BroadcastReceiver mBroadcastReceiver;
 
     public NotificationForegroundService() {
-    }
-
-    public static class LockedBootCompletedReceiver extends BroadcastReceiver {
-        private static final String TAG = "BootCompletedReceiver";
-
-        @RequiresApi(api = Build.VERSION_CODES.O)
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: " + intent.toString());
-            Boolean isServiceRunning = isServiceRunning(
-                    context.getApplicationContext(),
-                    NotificationForegroundService.class);
-            // if (!isServiceRunning) {
-            Intent serviceIntent = new Intent(context, NotificationForegroundService.class);
-            serviceIntent.setAction(intent.getAction());
-            context.startForegroundService(serviceIntent);
-            //} else {
-
-            //}
-        }
     }
 
     @Override
@@ -95,7 +73,7 @@ public class NotificationForegroundService extends NotificationListenerService {
 
         // String input = intent.getStringExtra("inputExtra");
         // check whether we have any managed configuation stored
-        Log.e(TAG, "Checking managed configuration on Service start");
+        Log.d(TAG, "Checking managed configuration on Service start");
         try {
             refreshRules();
         } catch (BundleTools.BundleException | IOException e) {
@@ -160,152 +138,88 @@ public class NotificationForegroundService extends NotificationListenerService {
         matchNotificationCode(sbn);
     }
 
+    private void executeBlackListLogic(StatusBarNotification activeNotifications, String packageName, String chnID, String text, String subText, String title) {
+        Log.e(TAG, "Enabling Black List rule " + ruleType);
+        if (null != blkListRules && !blkListRules.isEmpty()) {
+            Iterator<NotificationControllerBlacklistrule> genericItr = blkListRules.iterator();
+            while (genericItr.hasNext()) {
+                NotificationControllerBlacklistrule blRuless = genericItr.next();
+                List<NotificationControllerBlacklistrule__1> blrules = blRuless.getNotificationControllerBlacklistrule();
+                for (NotificationControllerBlacklistrule__1 blRule : blrules) {
+                    Boolean packageMaskDisable = (blRule.getBlPackagename() == null || blRule.getBlPackagename().isEmpty());
+                    Boolean channelMaskDisable = (blRule.getBlChannelid() == null || blRule.getBlChannelid().isEmpty());
+                    Boolean titleMaskDisable = (blRule.getBlTitle() == null || blRule.getBlTitle().isEmpty());
+                    Boolean textMaskDisable = (blRule.getBlText() == null || blRule.getBlText().isEmpty());
+                    Boolean subTextMaskDisable = (blRule.getBlSubtext() == null || blRule.getBlSubtext().isEmpty());
+                    if (packageMaskDisable || blRule.getBlPackagename().equalsIgnoreCase(packageName))
+                        if (channelMaskDisable || blRule.getBlChannelid().equalsIgnoreCase(chnID))
+                            if (titleMaskDisable || blRule.getBlTitle().equalsIgnoreCase(title))
+                                if (textMaskDisable || blRule.getBlText().equalsIgnoreCase(text))
+                                    if (subTextMaskDisable || blRule.getBlSubtext().equalsIgnoreCase(subText)) {
+                                        Log.d(TAG, "Notification Blacklisted " + activeNotifications.getKey());
+                                        Log.d(TAG, "Notification in blacklist Cancelling " + activeNotifications.getKey());
+                                        this.cancelNotification(activeNotifications.getKey());
+                                    }
+                }
+            }
+        }
+    }
+
+    private void executeWhiteListLogic(StatusBarNotification activeNotifications, String packageName, String chnID, String text, String subText, String title) {
+        Log.e(TAG, "Enabling White List rule " + ruleType);
+        if (null != whtListRules && !whtListRules.isEmpty()) {
+            Iterator<NotificationControllerWhitelistrule> genericItr = whtListRules.iterator();
+            Boolean inWList = false;
+            while (genericItr.hasNext()) {
+                inWList = false;
+                NotificationControllerWhitelistrule whtRuless = genericItr.next();
+                List<NotificationControllerWhitelistrule__1> whtrules = whtRuless.getNotificationControllerWhitelistrule();
+                for (NotificationControllerWhitelistrule__1 whtRule : whtrules) {
+                    Boolean packageMaskDisable = (whtRule.getWlPackagename() == null || whtRule.getWlPackagename().isEmpty());
+                    Boolean channelMaskDisable = (whtRule.getWlChannelid() == null || whtRule.getWlChannelid().isEmpty());
+                    Boolean titleMaskDisable = (whtRule.getWlTitle() == null || whtRule.getWlTitle().isEmpty());
+                    Boolean textMaskDisable = (whtRule.getWlText() == null || whtRule.getWlText().isEmpty());
+                    Boolean subTextMaskDisable = (whtRule.getWlSubtext() == null || whtRule.getWlSubtext().isEmpty());
+                    if ((packageMaskDisable || whtRule.getWlPackagename().equalsIgnoreCase(packageName)) &&
+                            (channelMaskDisable || whtRule.getWlChannelid().equalsIgnoreCase(chnID)) &&
+                            (titleMaskDisable || whtRule.getWlTitle().equalsIgnoreCase(title)) &&
+                            (textMaskDisable || whtRule.getWlText().equalsIgnoreCase(text)) &&
+                            (subTextMaskDisable || whtRule.getWlSubtext().equalsIgnoreCase(subText))) {
+                        Log.d(TAG, "Notification in Whitelist " + activeNotifications.getKey());
+                        inWList = true;
+                        break;
+                    } else {
+                        Log.d(TAG, "Notification NOT in Whitelist as per Rule " + activeNotifications.getKey());
+                        //this.cancelNotification(sbn.getKey());
+                        inWList = false;
+                    }
+                }
+                if (inWList)
+                    break;
+            }
+            if (!inWList) {
+                Log.d(TAG, "Notification NOT in Whitelist Cancelling " + activeNotifications.getKey());
+                this.cancelNotification(activeNotifications.getKey());
+            }
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void refreshActiveNotifications() {
+        Log.e(TAG, "refreshActiveNotifications");
         StatusBarNotification[] activeNotifications = this.getActiveNotifications();
 
         if (activeNotifications != null && activeNotifications.length > 0) {
-            Log.e(TAG, "Stacked Notification");
+
             for (int i = 0; i < activeNotifications.length; i++) {
-                String packageName = activeNotifications[i].getPackageName();
-                String chnID = activeNotifications[i].getNotification().getChannelId();
-                Bundle extras = activeNotifications[i].getNotification().extras;
-                String text = null;
-                String subText = null;
-                String title = null;
-
-                if (null != extras.getCharSequence(Notification.EXTRA_SUB_TEXT)) {
-                    subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT).toString();
-                }
-                if (null != extras.getCharSequence(Notification.EXTRA_TITLE)) {
-                    title = extras.getCharSequence(Notification.EXTRA_TITLE).toString();
-                }
-                if (null != extras.getCharSequence(Notification.EXTRA_TEXT)) {
-                    text = extras.getCharSequence(Notification.EXTRA_TEXT).toString();
-                }
-                if (null != isControlled && isControlled == true) {
-                    Log.e(TAG, "Feature Enabled " + isControlled);
-                    if (ruleType.equals("Black List")) {
-                        Log.e(TAG, "Enabling Black List rule " + ruleType);
-                        if (null != blkListRules && !blkListRules.isEmpty()) {
-                            Iterator<NotificationControllerBlacklistrule> genericItr = blkListRules.iterator();
-
-                            while (genericItr.hasNext()) {
-                                NotificationControllerBlacklistrule blRuless = genericItr.next();
-                                List<NotificationControllerBlacklistrule__1> blrules = blRuless.getNotificationControllerBlacklistrule();
-                                for (NotificationControllerBlacklistrule__1 blRule : blrules) {
-                                    Boolean packageMaskDisable = (blRule.getBlPackagename() == null || blRule.getBlPackagename().isEmpty());
-                                    Boolean channelMaskDisable = (blRule.getBlChannelid() == null || blRule.getBlChannelid().isEmpty());
-                                    Boolean titleMaskDisable = (blRule.getBlTitle() == null || blRule.getBlTitle().isEmpty());
-                                    Boolean textMaskDisable = (blRule.getBlText() == null || blRule.getBlText().isEmpty());
-                                    Boolean subTextMaskDisable = (blRule.getBlSubtext() == null || blRule.getBlSubtext().isEmpty());
-                                    if (packageMaskDisable || blRule.getBlPackagename().equalsIgnoreCase(packageName))
-                                        if (channelMaskDisable || blRule.getBlChannelid().equalsIgnoreCase(chnID))
-                                            if (titleMaskDisable || blRule.getBlTitle().equalsIgnoreCase(title))
-                                                if (textMaskDisable || blRule.getBlText().equalsIgnoreCase(text))
-                                                    if (subTextMaskDisable || blRule.getBlSubtext().equalsIgnoreCase(subText)) {
-                                                        Log.d(TAG, "Notification Blacklisted " + activeNotifications[i].getKey());
-                                                        Log.d(TAG, "Notification in blacklist Cancelling " + activeNotifications[i].getKey());
-                                                        this.cancelNotification(activeNotifications[i].getKey());
-                                                    }
-
-                                }
-                            }
-                        }
-                    } else {
-                        Log.e(TAG, "Enabling White List rule " + ruleType);
-                        if (null != whtListRules && !whtListRules.isEmpty()) {
-                            Iterator<NotificationControllerWhitelistrule> genericItr = whtListRules.iterator();
-                            Boolean inWList = false;
-                            while (genericItr.hasNext()) {
-                                inWList = false;
-                                NotificationControllerWhitelistrule whtRuless = genericItr.next();
-                                List<NotificationControllerWhitelistrule__1> whtrules = whtRuless.getNotificationControllerWhitelistrule();
-                                for (NotificationControllerWhitelistrule__1 whtRule : whtrules) {
-
-                                    Boolean packageMaskDisable = (whtRule.getWlPackagename() == null || whtRule.getWlPackagename().isEmpty());
-                                    Boolean channelMaskDisable = (whtRule.getWlChannelid() == null || whtRule.getWlChannelid().isEmpty());
-                                    Boolean titleMaskDisable = (whtRule.getWlTitle() == null || whtRule.getWlTitle().isEmpty());
-                                    Boolean textMaskDisable = (whtRule.getWlText() == null || whtRule.getWlText().isEmpty());
-                                    Boolean subTextMaskDisable = (whtRule.getWlSubtext() == null || whtRule.getWlSubtext().isEmpty());
-                                    if ((packageMaskDisable || whtRule.getWlPackagename().equalsIgnoreCase(packageName)) &&
-                                            (channelMaskDisable || whtRule.getWlChannelid().equalsIgnoreCase(chnID)) &&
-                                            (titleMaskDisable || whtRule.getWlTitle().equalsIgnoreCase(title)) &&
-                                            (textMaskDisable || whtRule.getWlText().equalsIgnoreCase(text)) &&
-                                            (subTextMaskDisable || whtRule.getWlSubtext().equalsIgnoreCase(subText))) {
-                                        Log.d(TAG, "Notification in Whitelist " + activeNotifications[i].getKey());
-                                        inWList = true;
-                                        break;
-                                    } else {
-                                        Log.d(TAG, "Notification NOT in Whitelist as per Rule " + activeNotifications[i].getKey());
-                                        //this.cancelNotification(sbn.getKey());
-                                        inWList = false;
-                                    }
-
-                                }
-                                if (inWList)
-                                    break;
-                            }
-                            if (!inWList) {
-                                Log.d(TAG, "Notification NOT in Whitelist Cancelling " + activeNotifications[i].getKey());
-                                this.cancelNotification(activeNotifications[i].getKey());
-                            }
-
-                        }
-                    }
-
-
-                } else {
-                    Log.e(TAG, "Feature disabled " + isControlled);
-                }
-
+                matchNotificationCode(activeNotifications[i]);
             }
         }
     }
-
-
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    public void onNotificationRemoved(StatusBarNotification sbn) {
-
-        StatusBarNotification[] activeNotifications = this.getActiveNotifications();
-
-        if (activeNotifications != null && activeNotifications.length > 0) {
-            Log.e(TAG, "Stacked Notification");
-            for (int i = 0; i < activeNotifications.length; i++) {
-                Bundle extras = activeNotifications[i].getNotification().extras;
-                String notificationTitle = extras.getString(Notification.EXTRA_TITLE);
-                CharSequence notificationText = extras.getCharSequence(Notification.EXTRA_TEXT);
-                CharSequence notificationSubText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT);
-
-                Log.e(TAG, "Notification no " +i);
-                String packageName = activeNotifications[i].getPackageName();
-                String chnID = activeNotifications[i].getNotification().getChannelId();
-
-                if (null != packageName)
-                    Log.e(TAG, "Package Name " +packageName);
-
-                if (null != chnID)
-                    Log.e(TAG, "Channel Id " +chnID);
-
-                if (null != notificationTitle)
-                    Log.e(TAG, "Title " +notificationTitle);
-
-                if (null != notificationText)
-                    Log.e(TAG, "Text " +notificationText.toString());
-
-                if (null != notificationSubText)
-                    Log.e(TAG, "Sub Text " +notificationSubText.toString());
-
-
-            }
-        }
-    }
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void matchNotificationCode(StatusBarNotification sbn) {
+        Log.e(TAG, "matchNotificationCode");
         String packageName = sbn.getPackageName();
         String chnID = sbn.getNotification().getChannelId();
         Bundle extras = sbn.getNotification().extras;
@@ -322,97 +236,51 @@ public class NotificationForegroundService extends NotificationListenerService {
         if (null != extras.getCharSequence(Notification.EXTRA_TEXT)) {
             text = extras.getCharSequence(Notification.EXTRA_TEXT).toString();
         }
-/*
-        if(chnID.equals("DEVICE_ADMIN_ALERTS"))
-        {
-            if (extras.getCharSequence(Notification.EXTRA_TEXT).toString().equals("Installed by your admin") ||
-                    extras.getCharSequence(Notification.EXTRA_TEXT).toString().equals("Updated by your admin")) {
-                Log.e(TAG, "Removing " + extras.getCharSequence(Notification.EXTRA_TEXT).toString() );
-                this.cancelNotification(sbn.getKey());
-            }
-        }
-        else if (chnID.equals("alerting auto granted permissions")){
-            if (extras.getCharSequence(Notification.EXTRA_TITLE).toString().equals("Location can be accessed")) {
-                Log.e(TAG, "Removing " + extras.getCharSequence(Notification.EXTRA_TEXT).toString() );
-                this.cancelNotification(sbn.getKey());
-            }
-        }
-*/
+
         if (null != isControlled && isControlled == true) {
             Log.e(TAG, "Feature Enabled " + isControlled);
             if (ruleType.equals("Black List")) {
-                Log.e(TAG, "Enabling Black List rule " + ruleType);
-                if (null != blkListRules && !blkListRules.isEmpty()) {
-                    Iterator<NotificationControllerBlacklistrule> genericItr = blkListRules.iterator();
-
-                    while (genericItr.hasNext()) {
-                        NotificationControllerBlacklistrule blRuless = genericItr.next();
-                        List<NotificationControllerBlacklistrule__1> blrules = blRuless.getNotificationControllerBlacklistrule();
-                        for (NotificationControllerBlacklistrule__1 blRule : blrules) {
-                            Boolean packageMaskDisable = (blRule.getBlPackagename() == null || blRule.getBlPackagename().isEmpty());
-                            Boolean channelMaskDisable = (blRule.getBlChannelid() == null || blRule.getBlChannelid().isEmpty());
-                            Boolean titleMaskDisable = (blRule.getBlTitle() == null || blRule.getBlTitle().isEmpty());
-                            Boolean textMaskDisable = (blRule.getBlText() == null || blRule.getBlText().isEmpty());
-                            Boolean subTextMaskDisable = (blRule.getBlSubtext() == null || blRule.getBlSubtext().isEmpty());
-                            if (packageMaskDisable || blRule.getBlPackagename().equalsIgnoreCase(packageName))
-                                if (channelMaskDisable || blRule.getBlChannelid().equalsIgnoreCase(chnID))
-                                    if (titleMaskDisable || blRule.getBlTitle().equalsIgnoreCase(title))
-                                        if (textMaskDisable || blRule.getBlText().equalsIgnoreCase(text))
-                                            if (subTextMaskDisable || blRule.getBlSubtext().equalsIgnoreCase(subText)) {
-                                                Log.d(TAG, "Notification in blacklist Cancelling " + sbn.getKey());
-                                                this.cancelNotification(sbn.getKey());
-                                            }
-
-                        }
-                    }
-                }
+                executeBlackListLogic(sbn, packageName, chnID, text, subText, title);
             } else {
-                Log.e(TAG, "Enabling White List rule " + ruleType);
-                if (null != whtListRules && !whtListRules.isEmpty()) {
-                    Iterator<NotificationControllerWhitelistrule> genericItr = whtListRules.iterator();
-                    Boolean inWList = false;
-                    while (genericItr.hasNext()) {
-                        inWList = false;
-                        NotificationControllerWhitelistrule whtRuless = genericItr.next();
-                        List<NotificationControllerWhitelistrule__1> whtrules = whtRuless.getNotificationControllerWhitelistrule();
-                        for (NotificationControllerWhitelistrule__1 whtRule : whtrules) {
-
-                            Boolean packageMaskDisable = (whtRule.getWlPackagename() == null || whtRule.getWlPackagename().isEmpty());
-                            Boolean channelMaskDisable = (whtRule.getWlChannelid() == null || whtRule.getWlChannelid().isEmpty());
-                            Boolean titleMaskDisable = (whtRule.getWlTitle() == null || whtRule.getWlTitle().isEmpty());
-                            Boolean textMaskDisable = (whtRule.getWlText() == null || whtRule.getWlText().isEmpty());
-                            Boolean subTextMaskDisable = (whtRule.getWlSubtext() == null || whtRule.getWlSubtext().isEmpty());
-                            if ((packageMaskDisable || whtRule.getWlPackagename().equalsIgnoreCase(packageName)) &&
-                                 (channelMaskDisable || whtRule.getWlChannelid().equalsIgnoreCase(chnID)) &&
-                                     (titleMaskDisable || whtRule.getWlTitle().equalsIgnoreCase(title)) &&
-                                         (textMaskDisable || whtRule.getWlText().equalsIgnoreCase(text)) &&
-                                             (subTextMaskDisable || whtRule.getWlSubtext().equalsIgnoreCase(subText))){
-                                                Log.d(TAG, "Notification in Whitelist " + sbn.getKey());
-                                                inWList=true;
-                                                break;
-                                            }else{
-                                                Log.d(TAG, "Notification NOT in Whitelist as per Rule " + sbn.getKey());
-                                                //this.cancelNotification(sbn.getKey());
-                                                inWList=false;
-                                            }
-
-                        }
-                        if(inWList)
-                            break;
-                    }
-                    if(!inWList){
-                        Log.d(TAG, "Notification NOT in Whitelist Cancelling " + sbn.getKey());
-                        this.cancelNotification(sbn.getKey());
-                    }
-
-                }
+                executeWhiteListLogic(sbn, packageName, chnID, text, subText, title);
             }
-
         } else {
             Log.e(TAG, "Feature disabled " + isControlled);
         }
+    }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        StatusBarNotification[] activeNotifications = this.getActiveNotifications();
+        if (activeNotifications != null && activeNotifications.length > 0) {
+            Log.e(TAG, "Stacked Notification");
+            for (int i = 0; i < activeNotifications.length; i++) {
+                Bundle extras = activeNotifications[i].getNotification().extras;
+                String notificationTitle = extras.getString(Notification.EXTRA_TITLE);
+                CharSequence notificationText = extras.getCharSequence(Notification.EXTRA_TEXT);
+                CharSequence notificationSubText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT);
 
+                Log.e(TAG, "Notification no " + i);
+                String packageName = activeNotifications[i].getPackageName();
+                String chnID = activeNotifications[i].getNotification().getChannelId();
+
+                if (null != packageName)
+                    Log.e(TAG, "Package Name " + packageName);
+
+                if (null != chnID)
+                    Log.e(TAG, "Channel Id " + chnID);
+
+                if (null != notificationTitle)
+                    Log.e(TAG, "Title " + notificationTitle);
+
+                if (null != notificationText)
+                    Log.e(TAG, "Text " + notificationText.toString());
+
+                if (null != notificationSubText)
+                    Log.e(TAG, "Sub Text " + notificationSubText.toString());
+            }
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -437,7 +305,6 @@ public class NotificationForegroundService extends NotificationListenerService {
             }
             Log.d(TAG, "jsonString: " + jsonString);
             managedConfig = objectMapper.readValue(jsonString, NotificationManagedConfig.class);
-
             if (null != managedConfig) {
                 List<ManagedProperty> mngPropertys = managedConfig.getManagedProperty();
                 if (null != mngPropertys && !mngPropertys.isEmpty()) {
@@ -452,15 +319,23 @@ public class NotificationForegroundService extends NotificationListenerService {
                             whtListRules = mngProperty.getNotificationControllerWhitelistrules();
                     }
                 }
-                //matchNotificationCode(sbn);
                 refreshActiveNotifications();
             }
+        }
+    }
 
-            for (RestrictionEntry entry : entries) {
-                String key = entry.getKey();
-                Log.d(TAG, "key: " + key);
-
-            }
+    public static class LockedBootCompletedReceiver extends BroadcastReceiver {
+        private static final String TAG = "BootCompletedReceiver";
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "onReceive: " + intent.toString());
+            Boolean isServiceRunning = isServiceRunning(
+                    context.getApplicationContext(),
+                    NotificationForegroundService.class);
+            Intent serviceIntent = new Intent(context, NotificationForegroundService.class);
+            serviceIntent.setAction(intent.getAction());
+            context.startForegroundService(serviceIntent);
         }
     }
 }
