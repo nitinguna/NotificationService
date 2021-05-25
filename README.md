@@ -4,7 +4,8 @@
 
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
-Notification controller for controlling Android Notification from Enterprise Managed config interface
+Notification controller is an utility to manage Android Notification from Enterprise Managed config interface
+
 Notification controller majorly constitutes of an
 - Android Foreground service
 - Managed config interface 
