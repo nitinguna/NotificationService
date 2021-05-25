@@ -41,15 +41,33 @@ Blocking or Allowing notifications are based on Rules, There can be multiple rul
 |Sub Text | String | Sub-text of Notification |
 
 ***Blacklist Mode***
-
 if this mode is selected and rules are defined under Blacklist rules then Notifications are blocked if it matches with any of the defined blacklisted rules.
+*eg. Blacklist all the notification from App Install / update*
+
+ **- *rule 1: block Install app notifications***
+ 
+    Channel-Id : DEVICE_ADMIN_ALERTS
+ 
+    Text : Installed by your admin
+ 
+**- *rule 2: block update app notifications***
+
+    Channel-Id : DEVICE_ADMIN_ALERT
+    
+    Text : Updated by your admin
 
 ***Whitelist Mode***
-
 if this mode is selected and rules are defined under WhiteList rules then only those Notifications are whitelisted which passed through all of the defined Whitelist rules.
+*eg. Whitelist all the notification which passes below rules*
 
-
-
+ **- *rule 1: Allow Notifications from com.google.android.packageinstaller*** 
+ 
+    Package Name : com.google.android.packageinstaller
+ 
+ **- *rule 2: Allow Notifications from Device Admin***
+ 
+    Channel-Id : DEVICE_ADMIN_ALERT
+    
 
 | ![enter image description here](https://storage.googleapis.com/keyattestationserver.appspot.com/PlayStore.PNG) |![enter image description here](https://storage.googleapis.com/keyattestationserver.appspot.com/ManagedConfig.PNG)  |
 |--|--|
