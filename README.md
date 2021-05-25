@@ -19,5 +19,34 @@ Once Launched this service will re-launch itself on every reboot and start monit
 |--|--|--|
 | ![enter image description here](https://storage.googleapis.com/keyattestationserver.appspot.com/Screenshot_20210525-140124.png) | ![enter image description here](https://storage.googleapis.com/keyattestationserver.appspot.com/Screenshot_20210525-140207.png) | ![enter image description here](https://storage.googleapis.com/keyattestationserver.appspot.com/Screenshot_20210525-140223.png) |
 
+### Managed Config interface
+Notification service exposes an fully configurable admin Managed configuration, using them an EMM admin can remotely control every aspect of Notification management in Android.
+
+***Managed Configs***
+
+ - Enable Disable Service
+ - Mode (Whitelist / Blacklist)
+ - Whitelist Rules
+ - Blacklist Rules
+
+*Rules*
+
+Blocking or Allowing notifications are based on Rules, There can be multiple rules for a given Mode (WL/BL). Rule defines the criteria under which each Notification is evaluated to be qualified.
+| Field |Type  |Meaning  |
+|--|--|--|
+|Package Name  | String | Package name of Notification issuer |
+|Channel-id  | String | Channel on which Notification is issued |
+|Title | String | Title of Notification |
+|Text | String | Text of Notification |
+|Sub Text | String | Sub-text of Notification |
+
+*Blacklist Mode*
+
+if this mode is selected and rules are defined under Blacklist rules then Notifications are blocked if it matches with any of the defined blacklisted rules.
+
+*Whitelist Mode*
+
+if this mode is selected and rules are defined under WhiteList rules then only those Notifications are whitelisted which passed through all of the defined Whitelist rules.
+
 
 
