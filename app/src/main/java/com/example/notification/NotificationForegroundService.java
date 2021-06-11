@@ -239,13 +239,18 @@ public class NotificationForegroundService extends NotificationListenerService {
 
         if (null != isControlled && isControlled == true) {
             Log.e(TAG, "Feature Enabled " + isControlled);
-            if (ruleType.equals("Black List")) {
-                executeBlackListLogic(sbn, packageName, chnID, text, subText, title);
+            if (ruleType != null && !ruleType.isEmpty()) {
+                if (ruleType.equals("Black List")) {
+                    executeBlackListLogic(sbn, packageName, chnID, text, subText, title);
+                } else {
+                    executeWhiteListLogic(sbn, packageName, chnID, text, subText, title);
+                }
             } else {
-                executeWhiteListLogic(sbn, packageName, chnID, text, subText, title);
+                Log.e(TAG, "Feature disabled " + isControlled);
             }
-        } else {
-            Log.e(TAG, "Feature disabled " + isControlled);
+        }
+        else{
+            Log.e(TAG, "Feature disabled No Rule defined" + isControlled);
         }
     }
 
